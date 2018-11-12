@@ -578,13 +578,13 @@ static int usb_find_hubs()
                 info.actionable = 1;
                 if (strlen(opt_location)>0) {
                     if (strcasecmp(opt_location, info.location)) {
-                        printf('info.location=%s opt_location=%s strcasecmp=true\n', info.location, opt_location);
+                        printf("info.location=%s opt_location=%s strcasecmp=true\n", info.location, opt_location);
                         info.actionable = 0;
                     }
                 }
                 if (strlen(opt_vendor)>0) {
                     if (strncasecmp(opt_vendor, info.vendor, strlen(opt_vendor))) {
-                        printf('info.vendor=%s opt_vendor=%s strcasecmp=true\n', info.vendor, opt_vendor);
+                        printf("info.vendor=%s opt_vendor=%s strcasecmp=true\n", info.vendor, opt_vendor);
                         info.actionable = 0;
                     }
                 }
@@ -634,9 +634,13 @@ static int usb_find_hubs()
              */
             char *p1 = strchr(hubs[i].location, '-');
             char *p2 = strchr(hubs[j].location, '-');
-            if (p1 && p2 && strcasecmp(p1, p2)==0) {
-                match = j;
-                break;
+            if (p1 && p2) {
+                int m = strcasecmp(p1, p2);
+                printf("p1=%s && p2=%s && strcasecmp(p1, p2)==%d\n", p1, p2, m);
+                if (m == 0) {
+                    match = j;
+                    break;
+                }
             }
         }
         if (match >= 0)
