@@ -66,7 +66,7 @@ void sleep_ms(int milliseconds)
  * I've also observed onboard USB hub with whopping 14 ports,
  * but that hub did not support per-port power switching.
  */
-#define MAX_HUB_PORTS            9
+#define MAX_HUB_PORTS            16
 #define ALL_HUB_PORTS            ((1 << MAX_HUB_PORTS) - 1) /* bitmask */
 
 #define USB_CTRL_GET_TIMEOUT     5000
