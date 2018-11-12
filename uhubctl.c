@@ -578,13 +578,13 @@ static int usb_find_hubs()
                 info.actionable = 1;
                 if (strlen(opt_location)>0) {
                     if (strcasecmp(opt_location, info.location)) {
-                        printf('info.location=%s opt_location=%s strcasecmp=true\n', info.location, opt_location)
+                        printf('info.location=%s opt_location=%s strcasecmp=true\n', info.location, opt_location);
                         info.actionable = 0;
                     }
                 }
                 if (strlen(opt_vendor)>0) {
                     if (strncasecmp(opt_vendor, info.vendor, strlen(opt_vendor))) {
-                        printf('info.vendor=%s opt_vendor=%s strcasecmp=true\n', info.vendor, opt_vendor)
+                        printf('info.vendor=%s opt_vendor=%s strcasecmp=true\n', info.vendor, opt_vendor);
                         info.actionable = 0;
                     }
                 }
