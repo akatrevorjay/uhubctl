@@ -555,58 +555,94 @@ static int print_port_status(struct hub_info * hub, int portmask)
 
 static int usb_find_hubs()
 {
+    printf("hub_count=%d\n", hub_count);
+
     struct libusb_device *dev;
     int perm_ok = 1;
     int rc = 0;
     int i = 0;
     int j = 0;
     while ((dev = usb_devs[i++]) != NULL) {
+        printf("\n-- hub_count=%d\n", hub_count);
+        printf("usb_dev i=%d\n", i);
+
         struct libusb_device_descriptor desc;
+
         rc = libusb_get_device_descriptor(dev, &desc);
         /* only scan for hubs: */
         if (rc == 0 && desc.bDeviceClass != LIBUSB_CLASS_HUB)
             continue;
+
         struct hub_info info;
         bzero(&info, sizeof(info));
+
         rc = get_hub_info(dev, &info);
         if (rc) {
             perm_ok = 0; /* USB permission issue? */
         }
+
         get_device_description(dev, info.description, sizeof(info.description));
+        printf("info.description=%s\n", info.description);
+
         if (info.ppps) { /* PPPS is supported */
+            printf("ppps=true info.location=%s opt_location=%s\n", info.location, opt_location);
             if (hub_count < MAX_HUBS) {
                 info.actionable = 1;
-                if (strlen(opt_location)>0) {
-                    if (strcasecmp(opt_location, info.location)) {
-                        printf("info.location=%s opt_location=%s strcasecmp=true\n", info.location, opt_location);
-                        info.actionable = 0;
-                    }
-                }
-                if (strlen(opt_vendor)>0) {
-                    if (strncasecmp(opt_vendor, info.vendor, strlen(opt_vendor))) {
-                        printf("info.vendor=%s opt_vendor=%s strcasecmp=true\n", info.vendor, opt_vendor);
-                        info.actionable = 0;
-                    }
-                }
+
+                /* if (strlen(opt_location)>0) { */
+                /*     if (strcasecmp(opt_location, info.location)) { */
+                /*         printf("location actionable=0\n"); */
+                /*         info.actionable = 0; */
+                /*     } */
+                /* } */
+
+                /* if (strlen(opt_vendor)>0) { */
+                /*     if (strncasecmp(opt_vendor, info.vendor, strlen(opt_vendor))) { */
+                /*         printf("vendor actionable=0\n"); */
+                /*         info.actionable = 0; */
+                /*     } */
+                /* } */
+
+                printf("++ found hub: usb_dev_idx=%d actionable=%d vendor=%s location=%s\n", i, info.actionable, info.vendor, info.location);
                 memcpy(&hubs[hub_count], &info, sizeof(info));
                 hub_count++;
+            } else {
+                printf("MAX_HUBS reached\n");
             }
         }
     }
+
+    printf("\n\nsecond loop (hub_count=%d)\n\n", hub_count);
+
     hub_phys_count = 0;
     for (i=0; i<hub_count; i++) {
+        printf("\n-- hub i=%d\n", i);
+        printf("actionable=%d\n", 
+            hubs[i].actionable);
+        printf("vendor=%s location=%s\n",
+            hubs[i].vendor, hubs[i].location);
+
         /* Check only actionable USB3 hubs: */
         if (!hubs[i].actionable)
             continue;
+
         if (hubs[i].bcd_usb < USB_SS_BCD || opt_exact) {
             hub_phys_count++;
         }
+
         if (opt_exact)
             continue;
+
         int match = -1;
         for (j=0; j<hub_count; j++) {
             if (i==j)
                 continue;
+
+            printf("\n-- hub j=%d\n", j);
+            printf("actionable=%d\n", 
+                hubs[j].actionable);
+            printf("vendor=%s location=%s\n",
+                hubs[j].vendor, hubs[j].location);
 
             /* Find hub which is USB2/3 dual to the hub above.
              * This is quite reliable and predictable on Linux
@@ -618,16 +654,22 @@ static int usb_find_hubs()
 
             /* Hub and its dual must be different types: one USB2, another USB3: */
             if ((hubs[i].bcd_usb < USB_SS_BCD) ==
-                (hubs[j].bcd_usb < USB_SS_BCD))
+                (hubs[j].bcd_usb < USB_SS_BCD)) {
+                printf("diff types\n");
                 continue;
+            }
 
             /* But they must have the same vendor: */
-            if (strncasecmp(hubs[i].vendor, hubs[j].vendor, 4))
+            if (strncasecmp(hubs[i].vendor, hubs[j].vendor, 4)) {
+                printf("diff vendor\n");
                 continue;
+            }
 
             /* Provisionally we choose this one as dual: */
-            if (match < 0 && !hubs[j].actionable)
+            if (match < 0 && !hubs[j].actionable) {
+                printf("Provisionally chosen");
                 match = j;
+            }
 
             /* But if there is exact port path match,
              * we prefer it (true for Linux but not Mac):
@@ -788,13 +830,14 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
-    if (hub_phys_count > 1 && opt_action >= 0) {
-        fprintf(stderr,
-            "Error: changing port state for multiple hubs at once is not supported.\n"
-            "Use -l to limit operation to one hub!\n"
-        );
-        exit(1);
-    }
+    /* if (hub_phys_count > 1 && opt_action >= 0) { */
+    /*     fprintf(stderr, */
+    /*         "Error: changing port state for multiple hubs at once is not supported.\n" */
+    /*         "Use -l to limit operation to one hub!\n" */
+    /*     ); */
+    /*     exit(1); */
+    /* } */
+
     int k; /* k=0 for power OFF, k=1 for power ON */
     for (k=0; k<2; k++) { /* up to 2 power actions - off/on */
         if (k == 0 && opt_action == POWER_ON )
